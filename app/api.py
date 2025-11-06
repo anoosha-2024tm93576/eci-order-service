@@ -36,15 +36,15 @@ async def create_order(order: schemas.OrderCreate, idempotency_key: str = Header
                 "unit_price": Decimal(item.unit_price)
             })
 
-        tax = utils.bankers_round(subtotal * Decimal("0.1"))  # Example: 10% tax
-        shipping_fee = Decimal(order.shipping)  # match schema name!
+        tax = utils.bankers_round(subtotal * Decimal("0.05"))
+        shipping_fee = Decimal(order.shipping)
         total = subtotal + tax + shipping_fee
 
-        # Create order
+
         result = crud.create_order(session, order, subtotal, tax, total, items)
         order_id = result["id"]
 
-        # ✅ Respond with success
+
         return {
             "order_id": order_id,
             "status": "CONFIRMED",
