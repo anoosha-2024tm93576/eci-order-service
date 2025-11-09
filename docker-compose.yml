@@ -1,0 +1,51 @@
+# version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-orders_db}
+      MYSQL_USER: ${MYSQL_USER:-orders_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-orders_pass}
+    ports:
+      - "3307:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - db_data:/var/lib/mysql
+  order:
+    build: .
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+      # - inventory
+      # - payment
+      # - catalog
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # inventory:
+  #   image: "kennethreitz/httpbin"
+  #   ports:
+  #     - "8001:80"
+  # payment:
+  #   image: "kennethreitz/httpbin"
+  #   ports:
+  #     - "8002:80"
+  # catalog:
+  #   image: "kennethreitz/httpbin"
+  #   ports:
+  #     - "8003:80"
+
+volumes:
+  db_data:
